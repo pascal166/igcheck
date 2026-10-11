@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizzatore Follower Instagram</title>
+    <style>
+        :root {
+            --primary: #833AB4;
+            --gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --bg: #fafafa;
+            --card-bg: #ffffff;
+            --text: #262626;
+            --border: #dbdbdb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 30px 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            margin: 0 0 8px 0;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #737373;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .drop-zone {
+            border: 2px dashed #cccccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .drop-zone:hover {
+            border-color: #bc1888;
+            background: #fdf0f7;
+        }
+
+        .drop-zone p {
+            margin: 0;
+            font-weight: 600;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .drop-zone span {
+            font-size: 12px;
+            color: #8e8e8e;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-status {
+            font-size: 13px;
+            color: #2e7d32;
+            margin-top: 6px;
+            font-weight: bold;
+        }
+
+        button.btn-analyze {
+            width: 100%;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(220, 39, 67, 0.2);
+            transition: opacity 0.2s;
+        }
+
+        button.btn-analyze:hover {
+            opacity: 0.95;
+        }
+
+        #results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stat-card {
+            background: #f7f7f7;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #efeef0;
+        }
+
+        .stat-card .num {
+            font-size: 20px;
+            font-weight: bold;
+            color: #262626;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: #737373;
+            margin-top: 4px;
+        }
+
+        .stat-card.highlight .num {
+            color: #ed4956;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .controls input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .controls button {
+            padding: 10px 15px;
+            background: #efefef;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .user-list {
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .user-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-item a {
+            color: #0095f6;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-item a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Instagram Unfollower Checker</h1>
+        <p>Carica i tuoi file JSON per scoprire subito chi non ti segue a sua volta.</p>
+    </div>
+
+    <!-- Drop Zone Following -->
+    <div class="drop-zone" id="zone-following">
+        <p>1. Carica il file dei SEGUITI</p>
+        <span>(es. following)</span>
+        <div class="file-status" id="status-following"></div>
+        <input type="file" id="followingFiles" accept=".json" multiple onchange="aggiornaStato('following')">
+    </div>
+
+    <!-- Drop Zone Followers -->
+    <div class="drop-zone" id="zone-followers">
+        <p>2. Carica i file dei FOLLOWER</p>
+        <span>(es. followers_1)</span>
+        <div class="file-status" id="status-followers"></div>
+        <input type="file" id="followerFiles" accept=".json" multiple onchange="aggiornaStato('followers')">
+    </div>
+
+    <button class="btn-analyze" onclick="analizzaDati()">Analizza Ora</button>
+
+    <div id="results">
+        <hr style="border: none; border-top: 1px solid var(--border); margin: 25px 0;">
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="num" id="stat-following">0</div>
+                <div class="label">Seguiti</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="stat-followers">0</div>
+                <div class="label">Follower</div>
+            </div>
+            <div class="stat-card highlight">
+                <div class="num" id="stat-non-seguono">0</div>
+                <div class="label">Non ti seguono</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Cerca username..." oninput="filtraLista()">
+            <button onclick="copiaLista()">Copia Nomi</button>
+        </div>
+
+        <div class="user-list" id="userList"></div>
+    </div>
+</div>
+
+<script>
+let listaNonSeguonoGlobal = [];
+
+function aggiornaStato(tipo) {
+    const input = document.getElementById(tipo === 'following' ? 'followingFiles' : 'followerFiles');
+    const status = document.getElementById(tipo === 'following' ? 'status-following' : 'status-followers');
+    const count = input.files.length;
+    if (count > 0) {
+        status.textContent = `✓ ${count} file selezionato/i`;
+    } else {
+        status.textContent = '';
+    }
+}
+
+async function analizzaDati() {
+    const followingInput = document.getElementById('followingFiles').files;
+    const followerInput = document.getElementById('followerFiles').files;
+
+    if (followingInput.length === 0 || followerInput.length === 0) {
+        alert('Per favore seleziona i file JSON sia per i Seguiti che per i Follower.');
+        return;
+    }
+
+    try {
+        const seguitiSet = await estraiUsernameUniversale(followingInput);
+        const followerSet = await estraiUsernameUniversale(followerInput);
+
+        listaNonSeguonoGlobal = [...seguitiSet].filter(user => !followerSet.has(user)).sort();
+
+        document.getElementById('stat-following').textContent = seguitiSet.size;
+        document.getElementById('stat-followers').textContent = followerSet.size;
+        document.getElementById('stat-non-seguono').textContent = listaNonSeguonoGlobal.length;
+
+        mostraLista(listaNonSeguonoGlobal);
+        document.getElementById('results').style.display = 'block';
+
+    } catch (e) {
+        alert('Errore nella lettura dei file: ' + e.message);
+        console.error(e);
+    }
+}
+
+async function estraiUsernameUniversale(fileList) {
+    const setRisultato = new Set();
+
+    for (let i = 0; i < fileList.length; i++) {
+        const contenuto = await fileList[i].text();
+        const json = JSON.parse(contenuto);
+
+        // Funzione ricorsiva interna per trovare qualsiasi stringa che somigli a uno username o valore utile
+        trovaStringheRicorsivo(json, setRisultato);
+    }
+    return setRisultato;
+}
+
+function trovaStringheRicorsivo(obj, setRisultato) {
+    if (!obj || typeof obj !== 'object') return;
+
+    if (Array.isArray(obj)) {
+        obj.forEach(item => trovaStringheRicorsivo(item, setRisultato));
+    } else {
+        // Se l'oggetto ha chiavi note di Instagram, estrai direttamente
+        if (obj.value && typeof obj.value === 'string') {
+            setRisultato.add(obj.value);
+        }
+        if (obj.title && typeof obj.title === 'string' && !obj.title.includes(' ')) {
+            setRisultato.add(obj.title);
+        }
+        
+        // Cerca in tutte le proprietà figlie
+        for (let chiave in obj) {
+            if (obj.hasOwnProperty(chiave)) {
+                if (chiave === 'value' || chiave === 'title') {
+                    if (typeof obj[chiave] === 'string' && obj[chiave].trim() !== '') {
+                        // Filtra per evitare frasi lunghe o date
+                        let val = obj[chiave].trim();
+                        if (!val.includes(' ') && val.length < 50) {
+                            setRisultato.add(val);
+                        }
+                    }
+                } else {
+                    trovaStringheRicorsivo(obj[chiave], setRisultato);
+                }
+            }
+        }
+    }
+}
+
+function mostraLista(lista) {
+    const container = document.getElementById('userList');
+    container.innerHTML = '';
+
+    if (lista.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:#737373;">Tutti gli utenti che segui ti ricambiano il follow! 🎉</div>';
+        return;
+    }
+
+    lista.forEach((username, idx) => {
+        const item = document.createElement('div');
+        item.className = 'user-item';
+        item.innerHTML = `
+            <span><strong>${idx + 1}.</strong> ${username}</span>
+            <a href="https://www.instagram.com/${username}" target="_blank">Apri Profilo ↗</a>
+        `;
+        container.appendChild(item);
+    });
+}
+
+function filtraLista() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const filtrati = listaNonSeguonoGlobal.filter(user => user.toLowerCase().includes(query));
+    mostraLista(filtrati);
+}
+
+function copiaLista() {
+    if (listaNonSeguonoGlobal.length === 0) return;
+    navigator.clipboard.writeText(listaNonSeguonoGlobal.join('\n'));
+    alert('Lista dei nomi utente copiata negli appunti!');
+}
+</script>
+
+</body>
+</html>
